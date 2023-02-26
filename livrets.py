@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PyPDF2 import PdfReader, PdfWriter, Transformation, PageObject
+from pypdf import PdfReader, PdfWriter, Transformation, PageObject
 import sys, getopt
 
 def Usage(message=None):
@@ -19,14 +19,15 @@ def Usage(message=None):
 
 
 def outputSheet(pdf_reader, pdf_writer, border, p0, p1, p2, p3):
-    print(p0, p1, p2, p3)
+    print("generating sheet with pages", p0, p1, p2, p3)
     global h, w, scale, scale_translate, allPages
 
     out = PageObject.create_blank_page(width = h, height = w)
 
-    page0 = pdf_reader.pages[p0]
-    page0.add_transformation(scale)
-    out.merge_page(page0)
+    if p0 < allPages:
+        page0 = pdf_reader.pages[p0]
+        page0.add_transformation(scale)
+        out.merge_page(page0)
 
     if p1 < allPages:
         out1 = PageObject.create_blank_page(width = h, height = w)
@@ -53,14 +54,21 @@ def outputSheet(pdf_reader, pdf_writer, border, p0, p1, p2, p3):
         out1.merge_page(page3)
         out1.add_transformation(scale_translate)
         out.merge_page(out1)
-        if border == 'l':
+        if border == 'long':
             out.rotate(180)
 
     pdf_writer.add_page(out)
 
 
-def convert(pdf_reader, pdf_writer, border, sheets):
+def convert(in_path, out_path, border, sheets):
     global h, w, scale, scale_translate, allPages
+
+    try:
+        pdf_reader = PdfReader(in_path)
+    except Exception as err:
+        Usage(f"Can't open input file : {err}")
+
+    pdf_writer = PdfWriter()
 
     page0 = pdf_reader.pages[0]
     h = int(page0.mediabox.top)
@@ -85,8 +93,14 @@ def convert(pdf_reader, pdf_writer, border, sheets):
 
     # print(f'h={h}, w={w}, t={t}')
 
+    try:
+        with open(out_path, 'wb') as out_file:
+            pdf_writer.write(out_file)
+    except Exception as err:
+        Usage("Can't open output file")
 
-def main(argv):
+
+def parseArgs(argv):
     try:
         optlist, args = getopt.getopt(argv, 'i:o:lsn:', [ 'input=', 'output=', 'long', 'short', 'sheets='] )
     except getopt.GetoptError as err:
@@ -97,7 +111,7 @@ def main(argv):
 
     in_path = None
     out_path = None
-    border = 'l'
+    border = 'long'
     sheets = 0
     for o, a in optlist:
         if o in ('-i', '--input'):
@@ -105,9 +119,9 @@ def main(argv):
         elif o in ('-o', '--output'):
             out_path = a
         elif o in ('-l', '--long'):
-            border = 'l'
+            border = 'long'
         elif o in ('-s', '--short'):
-            border = 's'
+            border = 'short'
         elif o in ('-n', '--sheets'):
             try:
                 sheets = int(a)
@@ -116,23 +130,15 @@ def main(argv):
         else:
             Usage("unhandled option")
 
+    return in_path, out_path, border, sheets
+
+
+def main(argv):
+    in_path, out_path, border, sheets = parseArgs(argv)
     if in_path is None or out_path is None:
         Usage("Both input and output pathes are required")
 
-    try:
-        pdf_reader = PdfReader(in_path)
-    except Exception as err:
-        Usage(f"Can't open input file : {err}")
-
-    pdf_writer = PdfWriter()
-
-    convert(pdf_reader, pdf_writer, border, sheets)
-
-    try:
-        with open(out_path, 'wb') as out_file:
-            pdf_writer.write(out_file)
-    except Exception as err:
-        Usage("Can't open output file")
+    convert(in_path, out_path, border, sheets)
 
 argv0=sys.argv[0]
 if __name__ == '__main__':
