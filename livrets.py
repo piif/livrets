@@ -60,7 +60,7 @@ def outputSheet(pdf_reader, pdf_writer, border, p0, p1, p2, p3):
     pdf_writer.add_page(out)
 
 
-def convert(in_path, out_path, border, sheets):
+def convert(in_path, out_path, border, sheets, progress=None):
     global h, w, scale, scale_translate, allPages
 
     try:
@@ -82,13 +82,20 @@ def convert(in_path, out_path, border, sheets):
         sheets = (allPages + 3) // 4
     pagesPerBooklet = sheets*4
     booklet = 0
+    lastBooklet = (allPages + pagesPerBooklet - 1) // pagesPerBooklet
     while booklet * pagesPerBooklet < allPages:
+        sheet = 0
         pageFrom = booklet * pagesPerBooklet
         pageTo = (booklet+1) * pagesPerBooklet - 1
         while pageFrom < pageTo:
+            if progress is None:
+                print(booklet*sheets + sheet, "/", lastBooklet*sheets)
+            else:
+                progress(booklet*sheets + sheet, lastBooklet*sheets)
             outputSheet(pdf_reader, pdf_writer, border, pageFrom+1, pageTo-1, pageTo, pageFrom)
             pageFrom += 2
             pageTo -= 2
+            sheet += 1
         booklet += 1
 
     # print(f'h={h}, w={w}, t={t}')
