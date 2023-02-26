@@ -59,7 +59,7 @@ label_border.grid(column=0, row=2)
 combo_border = ttk.Combobox(frame, values = ['long' , 'court'], textvariable=vborder)
 combo_border.grid(column=1, row=2)
 
-label_sheets = ttk.Label(frame, text="verso sur bord")
+label_sheets = ttk.Label(frame, text="feuilles par livret")
 label_sheets.grid(column=0, row=3)
 entry_sheets = ttk.Entry(frame, textvariable=vsheets)
 entry_sheets.grid(column=1, row=3)
