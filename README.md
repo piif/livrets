@@ -13,3 +13,7 @@ Une option permet de le faire par petits livrets (séries de 4 feuilles de 16 pa
  * `-l` : organiser pour une impression recto/verso sur le bord long
  * `-s` : organiser pour une impression recto/verso sur le bord court (short)
  * `-n N` : organiser par paquets de N feuilles (donc N*4 pages)
+
+## Génération du binaire pour windows
+pour créer un binaire 'standalone' à partir des sources, utiliser pyinstaller :
+  `pyinstaller -F .\tklivrets.py`
